@@ -1,0 +1,66 @@
+# 如何使用分页
+## 第一步导入分页拦截器
+```java
+@Data
+public class QueryPageParam {
+    private static int PAGE_SIZE=20;
+    private static int PAGE_NUM=1;
+
+    private int pageSize=PAGE_SIZE;
+    private int pageNum=PAGE_NUM;
+    private HashMap params = new HashMap();
+}
+```
+
+## 第二步在需要分页的方法中使用
+
+### 1. 在Controller中使用
+
+```java
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.HashMap;
+
+@PostMapping("/listPage")
+public List<User> list(@RequestBody QueryPageParam query) {
+    Page<T> page = new Page<>(query.getPageNum(), query.getPageSize());
+
+    // 自定义查询条件
+    LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+    
+    // 这里可修改部分只有查询条件其他一致
+    HashMap params = query.getParams(); // 提取出额外的模糊查询条件
+    if (params.get("age") != null) lambdaQueryWrapper.like(User::getAge, params.get("age"));
+    if (params.get("name") != null) lambdaQueryWrapper.like(User::getName, params.get("name"));
+
+    IPage result = userService.pageL(page, lambdaQueryWrapper);
+    
+}   return result.getRecords();
+```
+
+### 2. 在ServiceIml中使用
+
+```java
+public IPage pageL(IPage<User> page, Wrapper wrapper) {
+        return userMapper.pageL(page, wrapper);
+    }
+```
+
+### 3. 在Mapper中使用
+
+```java
+IPage pageL(IPage<User> page, @Param(Constants.WRAPPER) Wrapper wrapper);
+```
+
+## 4.   在Mapper.xml中使用
+
+```xml
+<!--    LambdaQueryWrapper的固定用法 
+    注意！！！resultType="com.wms.entity.User" 这里返回值不是IPage而是实体的list集合会被封装成IPage-->
+    <select id="pageL" resultType="com.wms.entity.User">
+        select * from user ${ew.customSqlSegment}
+    </select>
+```
