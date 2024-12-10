@@ -3,11 +3,16 @@ package com.wms.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wms.common.QueryPageParam;
 import com.wms.common.Result;
+import com.wms.entity.Menu;
 import com.wms.entity.User;
+import com.wms.service.MenuService;
 import com.wms.service.UserService;
+import freemarker.template.utility.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +36,9 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private MenuService menuService;
+
 
 
     @GetMapping("/list")
@@ -38,16 +46,41 @@ public class UserController {
         return userService.list();
     }
 
+    @GetMapping("/findByNo")
+    public Result findByNo(@RequestParam String no){
+        List list = userService.lambdaQuery().eq(User::getNo,no).list();
+        System.out.println("Records: " + list);
+        return list.size()>0?Result.suc(list):Result.fail();
+    }
+
     // 新增
     @PostMapping("/save")
-    public boolean save(@RequestBody User user){
-        return userService.save(user);
+    public Result save(@RequestBody User user){
+        return userService.save(user)?Result.suc():Result.fail();
+    }
+
+    @PostMapping("/login")
+    public Result login(@RequestBody User user){
+        List list = userService.lambdaQuery()
+                .eq(User::getNo,user.getNo())
+                .eq(User::getPassword,user.getPassword()).list();
+
+        if(list.size()>0){
+            User user1 = (User) list.get(0);
+            List menuList = menuService.lambdaQuery().like(Menu::getMenuright,user1.getRoleId()).list();
+            HashMap map = new HashMap();
+            map.put("user",user1);
+            map.put("menu",menuList);
+            return Result.suc(map);
+        }
+
+        return Result.fail();
     }
 
     // 修改
     @PostMapping("/update")
-    public boolean update(@RequestBody User user){
-        return userService.updateById(user);
+    public Result update(@RequestBody User user){
+        return userService.updateById(user)?Result.suc():Result.fail();
     }
 
     // 新增或修改
@@ -57,17 +90,20 @@ public class UserController {
     }
 
     // 删除
-    @GetMapping("/delete")
-    public boolean remove(Integer id){
-        return userService.removeById(id);
+    @GetMapping("/del")
+    public Result remove(@RequestParam Integer id){
+        return userService.removeById(id)?Result.suc():Result.fail();
     }
 
     // 模糊查询
     @PostMapping("/listP")
-    public List<User> listP(@RequestBody User user) {
+    public Result listP(@RequestBody User user) {
         LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper();
-        lambdaQueryWrapper.like(User::getAge, user.getAge());
-        return userService.list(lambdaQueryWrapper);
+        if(StringUtils.isNotBlank(user.getName())){
+            lambdaQueryWrapper.like(User::getName,user.getName());
+        }
+        if(user.getAge()!=null)lambdaQueryWrapper.like(User::getAge, user.getAge());
+        return Result.suc(userService.list(lambdaQueryWrapper));
     }
 
     // 分页实现：必须要添加拦截器
@@ -92,7 +128,7 @@ public class UserController {
         * 思考如果不使用lambdaQueryWrapper，如何实现动态sql？
         *   那么只能在mapper层中编写动态sql
         * */
-        if(params.get("age")!=null) lambdaQueryWrapper.like(User::getAge, params.get("age"));
+        if(params.get("age")!=null && !"".equals(params.get("age"))) lambdaQueryWrapper.like(User::getAge, params.get("age"));
         if(params.get("name")!=null)lambdaQueryWrapper.like(User::getName, params.get("name"));
 
         // 这里使用的IService的方法
@@ -116,24 +152,6 @@ public class UserController {
     }
 
     // lambdaQueryWrapper + 分页
-    @PostMapping("/listPageL")
-    public List<User> listPageL(@RequestBody QueryPageParam query) {
-
-        Page<User> page = new Page<>();
-        page.setCurrent(query.getPageNum());
-        page.setSize(query.getPageSize());
-
-        LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper();
-        HashMap params = query.getParams();
-        if(params.get("age")!=null) lambdaQueryWrapper.like(User::getAge, params.get("age"));
-        if(params.get("name")!=null)lambdaQueryWrapper.like(User::getName, params.get("name"));
-
-        IPage result = userService.pageL(page, lambdaQueryWrapper);
-        System.out.println(result.getTotal());
-        return result.getRecords();
-    }
-
-    // lambdaQueryWrapper + 分页
     @PostMapping("/listPageLR")
     public Result listPageLR(@RequestBody QueryPageParam query) {
 
@@ -141,14 +159,26 @@ public class UserController {
         page.setCurrent(query.getPageNum());
         page.setSize(query.getPageSize());
 
-        LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper();
         HashMap params = query.getParams();
-        if(params.get("age")!=null) lambdaQueryWrapper.like(User::getAge, params.get("age"));
-        if(params.get("name")!=null)lambdaQueryWrapper.like(User::getName, params.get("name"));
+        String name = (String)params.get("name");
+        String sex = (String)params.get("sex");
+        String roleId = (String)params.get("roleId");
 
-        IPage result = userService.pageL(page, lambdaQueryWrapper);
-        System.out.println(result.getTotal());
-        return Result.suc(result.getTotal(), result.getRecords());
+        LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper();
+        if(StringUtils.isNotBlank(name) && !"null".equals(name)){
+            lambdaQueryWrapper.like(User::getName,name);
+        }
+        if(StringUtils.isNotBlank(sex)){
+            lambdaQueryWrapper.eq(User::getSex,sex);
+        }
+        if(StringUtils.isNotBlank(roleId)){
+            lambdaQueryWrapper.eq(User::getRoleId,roleId);
+        }
+
+        //IPage result = userService.pageC(page);
+        IPage result = userService.pageLR(page,lambdaQueryWrapper);
+        System.out.println("total=="+result.getTotal());
+        return Result.suc(result.getRecords(),result.getTotal());
     }
 
 }

@@ -4,8 +4,9 @@ import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.wms.entity.User;
+import com.wms.entity.Goodstype;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.wms.entity.Storage;
 
 /**
  * <p>
@@ -13,11 +14,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * </p>
  *
  * @author wms
- * @since 2024-11-15
+ * @since 2024-12-04
  */
-public interface UserService extends IService<User> {
+public interface GoodstypeService extends IService<Goodstype> {
 
-    IPage pageC(IPage<User> page);
-
-    IPage pageLR(IPage<User> page, Wrapper wrapper);
+    IPage pageLR(IPage<Goodstype> page, Wrapper wrapper);
 }

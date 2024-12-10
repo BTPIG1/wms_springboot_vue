@@ -5,13 +5,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Constants;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.wms.entity.User;
+import com.wms.entity.Record;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-
-import java.util.HashMap;
-import java.util.List;
 
 /**
  * <p>
@@ -19,14 +16,12 @@ import java.util.List;
  * </p>
  *
  * @author wms
- * @since 2024-11-15
+ * @since 2024-12-05
  */
 @Mapper
-public interface UserMapper extends BaseMapper<User> {
+public interface RecordMapper extends BaseMapper<Record> {
 
-    // 不用管这个爆红，返回类型是一个entity对象的list集合
-    IPage pageC(IPage<User> page);
+    IPage pageLRes(IPage<Record> page, @Param(Constants.WRAPPER) Wrapper wrapper);
 
-    // @Param(Constants.WRAPPER) Wrapper wrapper 固定写法
-    IPage pageLR(IPage<User> page, @Param(Constants.WRAPPER) Wrapper wrapper);
+    IPage pageLR(IPage<Record> page, @Param(Constants.WRAPPER) Wrapper wrapper);
 }

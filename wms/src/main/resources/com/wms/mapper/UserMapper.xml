@@ -25,7 +25,7 @@
     </select>
 
 <!--    LambdaQueryWrapper的固定用法-->
-    <select id="pageL" resultType="com.wms.entity.User">
+    <select id="pageLR" resultType="com.wms.entity.User">
         select * from user ${ew.customSqlSegment}
     </select>
 

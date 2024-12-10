@@ -46,7 +46,7 @@ public class CodeGenerator {
         // 全局配置
         GlobalConfig gc = new GlobalConfig();
 
-        /*1.根据自己情况修改
+        /*1.根据自己情况修改-----------------------------------------------------------------------
         * System.getProperty("user.dir")+"/wms"; 前半部分是定位到项目的根目录，后半部分是定位到项目的模块
         * */
         String projectPath = System.getProperty("user.dir")+"/wms";
@@ -62,7 +62,7 @@ public class CodeGenerator {
         // 数据源配置
         DataSourceConfig dsc = new DataSourceConfig();
 
-        /*2.根据自己情况修改
+        /*2.根据自己情况修改--------------------------------------------------------------------------------
         * 修改数据库地址，用户名，密码
         * */
         // ⼀、修改数据源
