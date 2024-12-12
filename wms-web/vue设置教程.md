@@ -606,11 +606,13 @@ export default router;
 ```
 
 然后在main.js中注册(js文件在main.js注册，vue文件在app.vue中注册)
+
 ```js
 // 这里有两个步骤
 // 步骤1导入路由并使用
 import VueRouter from "vue-router";
-import router from './router';
+import router from './index';
+
 Vue.use(VueRouter);
 
 // 步骤2注册？
